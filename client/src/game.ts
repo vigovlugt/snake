@@ -1,6 +1,9 @@
 import Snake from "./snake";
 import Fruit from "./fruit";
 import IVector from "./IVector";
+import IFruit from "./IFruit";
+import ISnake from "./ISnake";
+import Socket from "socket";
 
 export default class Game {
   public ctx: CanvasRenderingContext2D | null = null;
@@ -23,16 +26,24 @@ export default class Game {
   }
 
   start() {
-    setInterval(() => {
-      this.update();
-      this.draw();
-    }, 1000 / 5);
-    this.spawnSnake();
-    this.spawnFruit();
+    Socket.instance.socket.on("sync", this.sync);
   }
 
-  spawnSnake() {
-    this.snakes.push(new Snake("localhost"));
+  sync(snakes: ISnake[], fruit: IFruit) {
+    // remove instances not in server
+    this.snakes = this.snakes.filter(
+      snake => snakes.map(s => s.id).indexOf(snake.id) !== -1
+    );
+
+    snakes.forEach(snakeObj => {
+      let index = this.snakes.findIndex(snake => snake.id === snakeObj.id);
+      if (index < 0) {
+        index = this.snakes.length;
+        this.snakes.push(new Snake(snakeObj.id));
+      }
+
+      this.snakes[index].body = snakeObj.body;
+    });
   }
 
   spawnFruit() {

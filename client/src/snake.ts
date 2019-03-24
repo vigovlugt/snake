@@ -11,7 +11,6 @@ export default class Snake implements ISnake {
   constructor(id: string) {
     this.id = id;
 
-    document.addEventListener("keydown", e => this.keydown(e));
     this.body = [
       { x: 8, y: 8 },
       { x: 8, y: 9 },
