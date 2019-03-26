@@ -1,10 +1,9 @@
 import Game from "./game";
-import Snake from "./snake";
-import ISnake from "./ISnake";
+import Socket from "./socket";
 
 window.onload = () => {
   const canvas = document.querySelector<HTMLCanvasElement>("#canvas")!;
   const game = new Game(canvas, 32);
-
+  const socket = new Socket();
   game.start();
 };

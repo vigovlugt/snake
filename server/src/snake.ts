@@ -7,9 +7,16 @@ export default class Snake implements ISnake {
   public id: string;
   public body: IBodyPart[] = [];
   public direction: IVector = { x: 0, y: 1 };
+  public color: string;
 
   constructor(id: string) {
     this.id = id;
+    this.color = `rgb(${this.random()},${this.random()},${this.random()})`;
+    this.resetPosition();
+  }
+
+  random() {
+    return Math.floor(Math.random() * 255);
   }
 
   update() {
@@ -31,16 +38,30 @@ export default class Snake implements ISnake {
   checkDead() {
     const selfCollide = this.body.some((bodyPart, i) => {
       if (i === 0) return false;
-      if (bodyPart.x == this.body[0].x && bodyPart.y == this.body[0].y) {
+      if (bodyPart.x == this.body[0].x && bodyPart.y == this.body[0].y)
         return true;
-      }
-
       return false;
     });
-    if (selfCollide) {
+    const bodys = Game.instance.snakes
+      .filter(s => s.id !== this.id)
+      .map(s => s.body);
+
+    const snakeCollide =
+      bodys.length === 0
+        ? false
+        : bodys
+            .reduce((a, b) => [...a, ...b])
+            .some((bodyPart, i) => {
+              if (bodyPart.x == this.body[0].x && bodyPart.y == this.body[0].y)
+                return true;
+              return false;
+            });
+
+    if (selfCollide || snakeCollide) {
       this.die();
       return;
     }
+
     if (
       this.body[0].x < 0 ||
       this.body[0].y < 0 ||
@@ -52,13 +73,38 @@ export default class Snake implements ISnake {
     }
   }
 
-  die() {
+  keyDown(key: number) {
+    const directionByKey: { [key: number]: IVector } = {
+      37: { x: -1, y: 0 },
+      38: { x: 0, y: -1 },
+      39: { x: 1, y: 0 },
+      40: { x: 0, y: 1 }
+    };
+    if (key in directionByKey) {
+      const newDir = directionByKey[key];
+      if (
+        this.body[1].x - this.body[0].x === newDir.x &&
+        this.body[1].y - this.body[0].y === newDir.y
+      )
+        return;
+      this.direction = newDir;
+    }
+  }
+
+  resetPosition() {
+    const x = Math.floor(Math.random() * Game.instance.size);
+    const y = Math.floor(Math.random() * Game.instance.size - 4) + 4;
+
     this.body = [
-      { x: 8, y: 8 },
-      { x: 8, y: 9 },
-      { x: 8, y: 10 },
-      { x: 8, y: 11 }
-    ];
+      { x, y },
+      { x, y: y - 1 },
+      { x, y: y - 2 },
+      { x, y: y - 3 }
+    ].reverse();
+  }
+
+  die() {
+    this.resetPosition();
     this.direction = { x: 0, y: -1 };
   }
 }

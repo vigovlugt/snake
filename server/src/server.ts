@@ -17,7 +17,7 @@ export default class Server {
     this.app = express();
     this.server = new http.Server(this.app);
     this.io = socketIo(this.server);
-    this.server.listen(80, () => console.log("listening on 80"));
+    this.server.listen(3001, () => console.log("listening on 3001"));
 
     this.game = new Game(WORLD_SIZE);
 
@@ -33,12 +33,18 @@ export default class Server {
     });
 
     // setup socket.io
-    this.io.on("connection", this.connection);
+    this.io.on("connection", socket => this.connection(socket));
+
+    setInterval(() => {
+      Game.instance.update();
+      this.sync();
+    }, 1000 / 7);
   }
 
   connection(socket: socketIo.Socket) {
     socket.on("disconnect", () => this.disconnect(socket));
 
+    this.game.initPlayer(socket.id);
     //setup sync
     socket.on("directionUpdate", (key: number) =>
       this.directionUpdate(socket, key)
@@ -53,5 +59,7 @@ export default class Server {
     this.io.emit("sync", this.game.getGameState());
   }
 
-  directionUpdate(socket: socketIo.Socket, key: number) {}
+  directionUpdate(socket: socketIo.Socket, key: number) {
+    this.game.snakes.find(snake => snake.id == socket.id)!.keyDown(key);
+  }
 }

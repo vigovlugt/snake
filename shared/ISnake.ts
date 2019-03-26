@@ -5,4 +5,5 @@ export default interface ISnake {
   // snakeType: ISnakeType;
   id: string;
   body: IBodyPart[];
+  color: string;
 }

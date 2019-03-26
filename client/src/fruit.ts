@@ -2,19 +2,11 @@ import IVector from "./IVector";
 import Game from "./game";
 
 export default class Fruit implements IVector {
-  public x: number;
-  public y: number;
-
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
+  public x: number = -1;
+  public y: number = -1;
 
   draw() {
-    Game.instance.drawRect(this.x, this.y, "rgb(255,0,0)");
-  }
-
-  remove() {
-    Game.instance.spawnFruit();
+    if (this.x !== -1 && this.y !== -1)
+      Game.instance.drawRect(this.x, this.y, "rgb(255,0,0)");
   }
 }

@@ -1,16 +1,15 @@
-import Snake from "./snake";
-import Fruit from "./fruit";
+import IGameState from "./IGameState";
 import IFruit from "./IFruit";
 import ISnake from "./ISnake";
-import Socket from "socket";
+import Socket from "./socket";
 
 export default class Game {
   public ctx: CanvasRenderingContext2D | null = null;
   public canvas: HTMLCanvasElement;
   public size: number;
 
-  public snakes: Snake[] = [];
-  public fruit: Fruit | null = null;
+  public snakes: ISnake[] = [];
+  public fruit: IFruit = { x: -1, y: -1 };
 
   public static instance: Game;
 
@@ -25,37 +24,49 @@ export default class Game {
   }
 
   start() {
-    Socket.instance.socket.on("sync", this.sync);
-  }
-
-  sync(snakes: ISnake[], fruit: IFruit) {
-    // remove instances not in server
-    this.snakes = this.snakes.filter(
-      snake => snakes.map(s => s.id).indexOf(snake.id) !== -1
+    Socket.instance.socket.on("sync", (gameState: IGameState) =>
+      this.sync(gameState)
     );
-
-    snakes.forEach(snakeObj => {
-      let index = this.snakes.findIndex(snake => snake.id === snakeObj.id);
-      if (index < 0) {
-        index = this.snakes.length;
-        this.snakes.push(new Snake(snakeObj.id));
+    document.addEventListener("keydown", e => {
+      if (e.keyCode >= 37 && e.keyCode <= 40) {
+        Socket.instance.socket.emit("directionUpdate", e.keyCode);
       }
-
-      this.snakes[index].body = snakeObj.body;
     });
   }
 
-  update() {
-    this.snakes.forEach(s => s.update());
+  sync(gameState: IGameState) {
+    this.snakes = gameState.snakes;
+    this.fruit = gameState.fruit;
+    this.draw();
   }
 
   draw() {
+    this.drawBackground();
+    this.drawFruit();
+    this.drawSnakes();
+  }
+
+  drawBackground() {
     if (!this.ctx) return;
     this.ctx.fillStyle = "rgb(55,55,55)";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  }
 
-    this.fruit!.draw();
-    this.snakes.forEach(s => s.draw());
+  drawSnakes() {
+    this.snakes.forEach(s => {
+      s.body.forEach((bodyPart, i) => {
+        this.drawRect(
+          bodyPart.x,
+          bodyPart.y,
+          i === 0 ? s.color : "rgb(0,255,0)"
+        );
+      });
+    });
+  }
+
+  drawFruit() {
+    if (this.fruit.x !== -1 && this.fruit.y !== -1)
+      Game.instance.drawRect(this.fruit.x, this.fruit.y, "#F14C4C");
   }
 
   drawRect(x: number, y: number, color: string) {

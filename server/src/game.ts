@@ -15,6 +15,7 @@ export default class Game {
   constructor(size: number) {
     this.size = size;
     Game.instance = this;
+    this.spawnFruit();
   }
 
   update() {
@@ -24,14 +25,7 @@ export default class Game {
   }
 
   initPlayer(id: string) {
-    const x = Math.floor(Math.random() * this.size);
-    const y = Math.floor(Math.random() * this.size - 4) + 4;
-
-    const newSnake: ISnake = {
-      id: id,
-      body: [{ x, y }, { x, y: y - 1 }, { x, y: y - 2 }, { x, y: y - 3 }]
-    };
-
+    const newSnake = new Snake(id);
     this.snakes.push(newSnake);
   }
 
@@ -46,9 +40,12 @@ export default class Game {
         positions.push({ x, y });
       }
     }
-    let unavailable = this.snakes
-      .map(s => <IVector[]>s.body)
-      .reduce((a, b) => [...a, ...b]);
+    let unavailable: IVector[] = [];
+    if (this.snakes.length !== 0) {
+      unavailable = this.snakes
+        .map(s => <IVector[]>s.body)
+        .reduce((a, b) => [...a, ...b]);
+    }
 
     positions = positions.filter(
       p => !unavailable.some(u => u.x == p.x && u.y == p.y)
