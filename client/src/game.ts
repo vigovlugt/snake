@@ -1,6 +1,5 @@
 import Snake from "./snake";
 import Fruit from "./fruit";
-import IVector from "./IVector";
 import IFruit from "./IFruit";
 import ISnake from "./ISnake";
 import Socket from "socket";
@@ -46,26 +45,6 @@ export default class Game {
     });
   }
 
-  spawnFruit() {
-    let positions = [];
-    for (let x = 0; x < this.size; x++) {
-      for (let y = 0; y < this.size; y++) {
-        positions.push({ x, y });
-      }
-    }
-    let unavailable = this.snakes
-      .map(s => <IVector[]>s.body)
-      .reduce((a, b) => [...a, ...b]);
-
-    positions = positions.filter(
-      p => !unavailable.some(u => u.x == p.x && u.y == p.y)
-    );
-
-    let position = positions[Math.floor(Math.random() * positions.length)];
-
-    this.fruit = new Fruit(position.x, position.y);
-  }
-
   update() {
     this.snakes.forEach(s => s.update());
   }
@@ -86,6 +65,4 @@ export default class Game {
     let rectHeight = this.canvas.height / this.size;
     this.ctx.fillRect(rectWidth * x, rectHeight * y, rectWidth, rectHeight);
   }
-
-  end() {}
 }
