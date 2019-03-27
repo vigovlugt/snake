@@ -6,6 +6,8 @@ import Game from "./game";
 
 const WORLD_SIZE = 32;
 
+const port = process.env.PORT || 3001;
+
 export default class Server {
   public server: http.Server;
   public app: express.Application;
@@ -17,7 +19,7 @@ export default class Server {
     this.app = express();
     this.server = new http.Server(this.app);
     this.io = socketIo(this.server);
-    this.server.listen(3001, () => console.log("listening on 3001"));
+    this.server.listen(port, () => console.log("listening on " + port));
 
     this.game = new Game(WORLD_SIZE);
 
